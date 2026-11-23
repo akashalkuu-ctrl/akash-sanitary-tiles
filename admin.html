@@ -4,68 +4,75 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>আকাশ স্যানিটারি - Admin Panel</title>
+<title>Admin Panel | আকাশ স্যানিটারি</title>
 
 <style>
 *{box-sizing:border-box}
 body{margin:0;font-family:Arial,sans-serif;background:#f1f5f9;color:#172033}
-header{background:#075985;color:white;padding:20px;text-align:center}
+header{background:#075985;color:white;text-align:center;padding:20px}
 .container{max-width:1100px;margin:auto;padding:15px}
-.card{background:white;padding:18px;border-radius:12px;margin-bottom:16px;box-shadow:0 3px 12px #00000010}
-input,select,textarea,button{width:100%;padding:12px;margin:7px 0;border:1px solid #cbd5e1;border-radius:8px;font-size:15px}
-button{background:#0284c7;color:white;border:0;cursor:pointer;font-weight:bold}
+.card{background:white;padding:18px;border-radius:12px;margin:15px 0;box-shadow:0 3px 12px #0001}
+h2,h3{color:#075985}
+input,select,textarea{width:100%;padding:12px;margin:7px 0;border:1px solid #cbd5e1;border-radius:8px;font-size:15px}
+button{padding:12px 17px;background:#0284c7;color:white;border:0;border-radius:8px;font-weight:bold;cursor:pointer}
+button:disabled{opacity:.6}
 .danger{background:#dc2626}
+.green{background:#16a34a}
 .gray{background:#475569}
-.hidden{display:none}
-.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:10px}
+.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:10px}
 .stat{background:#e0f2fe;padding:15px;border-radius:10px;text-align:center}
-.stat strong{display:block;font-size:25px;color:#075985}
-.booking{border:1px solid #dbeafe;border-radius:10px;padding:15px;margin:13px 0}
-.booking h3{color:#075985;margin-top:0}
-.row{display:grid;grid-template-columns:1fr 1fr;gap:10px}
-.small{font-size:13px;color:#64748b}
-@media(max-width:550px){.row{grid-template-columns:1fr}}
+.stat strong{font-size:25px;display:block;color:#075985}
+.booking{border:1px solid #dbeafe;padding:16px;border-radius:10px;margin:15px 0;background:#fff}
+.info{line-height:1.9;overflow-wrap:anywhere}
+.hidden{display:none}
+small{color:#64748b}
+footer{text-align:center;padding:20px;color:#64748b}
 </style>
 </head>
 
 <body>
 
 <header>
-<h2>আকাশ স্যানিটারি ও টাইলস মিস্ত্রি</h2>
-<p>ADMIN DASHBOARD</p>
+<h2 style="color:white">আকাশ স্যানিটারি ও টাইলস মিস্ত্রি</h2>
+<p>অ্যাডমিন কন্ট্রোল প্যানেল</p>
 </header>
 
 <div class="container">
 
-<div id="loginBox" class="card">
-<h2>অ্যাডমিন লগইন</h2>
-<input id="password" type="password" placeholder="অ্যাডমিন পাসওয়ার্ড">
-<button onclick="login()">লগইন করুন</button>
-<p id="error" style="color:red"></p>
-<p class="small">ডেমো পাসওয়ার্ড: akash123</p>
+<div class="card" id="loginBox">
+<h2>🔐 Admin Login</h2>
+
+<label>ইমেইল</label>
+<input type="email" id="email" placeholder="Admin email" required>
+
+<label>পাসওয়ার্ড</label>
+<input type="password" id="password" placeholder="Admin password" required>
+
+<button id="loginBtn" style="width:100%">লগইন করুন</button>
+<p id="loginMessage"></p>
 </div>
 
 <div id="dashboard" class="hidden">
 
 <div class="card">
-<div class="row">
-<h2>বুকিং ড্যাশবোর্ড</h2>
-<button class="gray" onclick="logout()">লগআউট</button>
+<h2>স্বাগতম, অ্যাডমিন</h2>
+<button id="refreshBtn">তথ্য রিফ্রেশ</button>
+<button id="logoutBtn" class="danger">লগআউট</button>
 </div>
 
 <div class="stats">
 <div class="stat">মোট বুকিং<strong id="total">0</strong></div>
-<div class="stat">নতুন<strong id="newCount">0</strong></div>
+<div class="stat">নতুন বুকিং<strong id="newCount">0</strong></div>
 <div class="stat">নিশ্চিত<strong id="confirmed">0</strong></div>
 <div class="stat">সম্পন্ন<strong id="completed">0</strong></div>
-</div>
 </div>
 
 <div class="card">
 <h3>বুকিং খুঁজুন</h3>
-<input id="search" placeholder="নাম, ফোন বা গ্রামের নাম দিয়ে খুঁজুন" oninput="render()">
+<input id="search" placeholder="নাম, ফোন, গ্রাম, বুকিং আইডি বা উপজেলা দিয়ে খুঁজুন">
 
-<select id="filter" onchange="render()">
+<label>স্ট্যাটাস অনুযায়ী দেখুন</label>
+<select id="filter">
 <option value="">সব বুকিং</option>
 <option>নতুন বুকিং</option>
 <option>নিশ্চিত</option>
@@ -77,162 +84,292 @@ button{background:#0284c7;color:white;border:0;cursor:pointer;font-weight:bold}
 </div>
 
 <div class="card">
-<h3>সকল কাস্টমার বুকিং</h3>
-<div id="bookingList">কোনো বুকিং পাওয়া যায়নি।</div>
+<h2>📋 সকল কাস্টমার বুকিং</h2>
+<div id="bookingList">বুকিং লোড হচ্ছে...</div>
 </div>
 
 </div>
 </div>
 
-<script>
-const KEY="akash_demo_bookings_v1";
-const PASSWORD="akash123";
+<footer>
+আকাশ স্যানিটারি ও টাইলস মিস্ত্রি
+</footer>
 
-function login(){
-if(document.getElementById("password").value===PASSWORD){
-sessionStorage.setItem("akash_admin_login","yes");
-showDashboard();
-}else{
-document.getElementById("error").textContent="পাসওয়ার্ড সঠিক নয়!";
-}
-}
+<script type="module">
 
-function logout(){
-sessionStorage.removeItem("akash_admin_login");
-location.reload();
-}
+import { initializeApp }
+from "https://www.gstatic.com/firebasejs/11.10.0/firebase-app.js";
 
-function showDashboard(){
-document.getElementById("loginBox").classList.add("hidden");
-document.getElementById("dashboard").classList.remove("hidden");
-render();
-}
+import {
+ getAuth,
+ signInWithEmailAndPassword,
+ onAuthStateChanged,
+ signOut
+} from "https://www.gstatic.com/firebasejs/11.10.0/firebase-auth.js";
 
-function getBookings(){
-try{
-return JSON.parse(localStorage.getItem(KEY)||"[]");
-}catch(e){return [];}
-}
+import {
+ getFirestore,
+ collection,
+ getDocs,
+ doc,
+ writeBatch,
+ query,
+ orderBy
+} from "https://www.gstatic.com/firebasejs/11.10.0/firebase-firestore.js";
 
-function saveBookings(data){
-localStorage.setItem(KEY,JSON.stringify(data));
-}
+
+const firebaseConfig = {
+ apiKey: "AIzaSyBvDv-zJbn5tgFrTt0Y2XHhagRqpL1YPOo",
+ authDomain: "akash-sanitary-18f8e.firebaseapp.com",
+ projectId: "akash-sanitary-18f8e",
+ storageBucket: "akash-sanitary-18f8e.firebasestorage.app",
+ messagingSenderId: "356604373846",
+ appId: "1:356604258?web=d12ac29c648258668b44f7"
+};
+
+// Firebase configuration
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+const db = getFirestore(app);
+
+const ADMIN_UID = "iMdwmEL9JMaZhdhfjpIQoMipO4j2";
+
+let allBookings = [];
+
+const $ = id => document.getElementById(id);
 
 function safe(value){
-return String(value??"").replace(/[&<>"']/g,c=>({
-"&":"&amp;",
-"<":"&lt;",
-">":"&gt;",
-'"':"&quot;",
-"'":"&#39;"
-}[c]));
+ return String(value || "").replace(/[&<>"']/g,c=>({
+ "&":"&amp;",
+ "<":"&lt;",
+ ">":"&gt;",
+ '"':"&quot;",
+ "'":"&#39;"
+ }[c]));
 }
 
-function render(){
+function showMessage(message){
+ $("loginMessage").textContent = message;
+}
 
-const bookings=getBookings();
+$("loginBtn").addEventListener("click",async()=>{
+ const email = $("email").value.trim();
+ const password = $("password").value;
 
-document.getElementById("total").textContent=bookings.length;
+ if(!email || !password){
+  showMessage("ইমেইল ও পাসওয়ার্ড দিন।");
+  return;
+ }
 
-document.getElementById("newCount").textContent=
-bookings.filter(b=>(b.status||"নতুন বুকিং")==="নতুন বুকিং").length;
+ $("loginBtn").disabled = true;
+ showMessage("লগইন হচ্ছে...");
 
-document.getElementById("confirmed").textContent=
-bookings.filter(b=>b.status==="নিশ্চিত").length;
-
-document.getElementById("completed").textContent=
-bookings.filter(b=>b.status==="সম্পন্ন").length;
-
-const q=document.getElementById("search").value.toLowerCase();
-const f=document.getElementById("filter").value;
-
-const filtered=bookings.map((b,i)=>({...b,_index:i})).filter(b=>{
-const text=[
-b.name,b.phone,b.village,b.address,b.upazila
-].join(" ").toLowerCase();
-
-return text.includes(q)&&(!f||(b.status||"নতুন বুকিং")===f);
+ try{
+  await signInWithEmailAndPassword(auth,email,password);
+ }catch(error){
+  showMessage("লগইন হয়নি। ইমেইল ও পাসওয়ার্ড পরীক্ষা করুন।");
+ }finally{
+  $("loginBtn").disabled = false;
+ }
 });
 
-const list=document.getElementById("bookingList");
+onAuthStateChanged(auth,async user=>{
+ if(user && user.uid === ADMIN_UID){
+  $("loginBox").classList.add("hidden");
+  $("dashboard").classList.remove("hidden");
+  await loadBookings();
+ }else{
+  $("dashboard").classList.add("hidden");
+  $("loginBox").classList.remove("hidden");
 
-if(!filtered.length){
-list.innerHTML="কোনো বুকিং পাওয়া যায়নি।";
-return;
+  if(user){
+   await signOut(auth);
+   showMessage("এই অ্যাকাউন্টের অ্যাডমিন অনুমতি নেই।");
+  }
+ }
+});
+
+$("logoutBtn").addEventListener("click",async()=>{
+ await signOut(auth);
+});
+
+async function loadBookings(){
+ $("bookingList").textContent = "বুকিং লোড হচ্ছে...";
+
+ try{
+  const q = query(
+   collection(db,"bookings"),
+   orderBy("createdAt","desc")
+  );
+
+  const snapshot = await getDocs(q);
+
+  allBookings = snapshot.docs.map(d=>({
+   ...d.data(),
+   id:d.id
+  }));
+
+  updateStats();
+  renderBookings();
+
+ }catch(error){
+  $("bookingList").textContent =
+   "বুকিং লোড হয়নি। Firebase Rules ও ইন্টারনেট পরীক্ষা করুন।";
+ }
 }
 
-list.innerHTML=filtered.map(b=>`
-<div class="booking">
+function updateStats(){
+ $("total").textContent = allBookings.length;
 
-<h3>👤 ${safe(b.name||"নাম নেই")}</h3>
+ $("newCount").textContent =
+ allBookings.filter(b=>b.status==="নতুন বুকিং").length;
 
-<p><b>বুকিং আইডি:</b> ${safe(b.id)}</p>
-<p><b>ফোন:</b> ${safe(b.phone)}</p>
-<p><b>জেলা:</b> ${safe(b.district||"নাটোর")}</p>
-<p><b>উপজেলা:</b> ${safe(b.upazila)}</p>
-<p><b>গ্রামের নাম:</b> ${safe(b.village||"দেওয়া হয়নি")}</p>
-<p><b>সম্পূর্ণ ঠিকানা:</b> ${safe(b.address)}</p>
-<p><b>কাজের ধরন:</b> ${safe(b.service)}</p>
-<p><b>কাজের বিবরণ:</b> ${safe(b.details)}</p>
-<p><b>কাস্টমারের পছন্দের তারিখ:</b> ${safe(b.date)}</p>
+ $("confirmed").textContent =
+ allBookings.filter(b=>b.status==="নিশ্চিত").length;
 
-<hr>
-
-<label>মিস্ত্রি যাওয়ার তারিখ</label>
-<input type="date" id="visitDate${b._index}" value="${safe(b.visitDate)}">
-
-<label>মিস্ত্রি যাওয়ার সময়</label>
-<input type="time" id="visitTime${b._index}" value="${safe(b.visitTime)}">
-
-<label>বুকিং স্ট্যাটাস</label>
-<select id="status${b._index}">
-${["নতুন বুকিং","নিশ্চিত","কর্মী রওনা হয়েছেন","কাজ চলছে","সম্পন্ন","বাতিল"].map(s=>
-`<option value="${s}" ${(b.status||"নতুন বুকিং")===s?"selected":""}>${s}</option>`
-).join("")}
-</select>
-
-<label>কাস্টমারকে বার্তা</label>
-<textarea id="note${b._index}" rows="3">${safe(b.note||"")}</textarea>
-
-<button onclick="updateBooking(${b._index})">আপডেট সেভ করুন</button>
-
-<button class="danger" onclick="deleteBooking(${b._index})">বুকিং মুছুন</button>
-
-</div>
-`).join("");
+ $("completed").textContent =
+ allBookings.filter(b=>b.status==="সম্পন্ন").length;
 }
 
-function updateBooking(index){
+function renderBookings(){
 
-const bookings=getBookings();
-const b=bookings[index];
+ const search = $("search").value.toLowerCase().trim();
+ const filter = $("filter").value;
 
-if(!b)return;
+ const filtered = allBookings.filter(b=>{
+  const text = [
+   b.id,b.name,b.phone,b.village,
+   b.upazila,b.address,b.service
+  ].join(" ").toLowerCase();
 
-b.visitDate=document.getElementById("visitDate"+index).value;
-b.visitTime=document.getElementById("visitTime"+index).value;
-b.status=document.getElementById("status"+index).value;
-b.note=document.getElementById("note"+index).value;
+  return text.includes(search) &&
+   (!filter || b.status===filter);
+ });
 
-saveBookings(bookings);
+ if(!filtered.length){
+  $("bookingList").innerHTML =
+   "<p>কোনো বুকিং পাওয়া যায়নি।</p>";
+  return;
+ }
 
-alert("বুকিং আপডেট সেভ হয়েছে!");
-render();
+ $("bookingList").innerHTML = filtered.map(b=>`
+ <div class="booking">
+
+  <h3>বুকিং: ${safe(b.id)}</h3>
+
+  <div class="info">
+   <b>নাম:</b> ${safe(b.name)}<br>
+   <b>ফোন:</b> ${safe(b.phone)}<br>
+   <b>জেলা:</b> ${safe(b.district)}<br>
+   <b>উপজেলা:</b> ${safe(b.upazila)}<br>
+   <b>গ্রাম:</b> ${safe(b.village)}<br>
+   <b>ঠিকানা:</b> ${safe(b.address)}<br>
+   <b>কাজ:</b> ${safe(b.service)}<br>
+   <b>কাজ দেখতে যাওয়ার পছন্দের তারিখ:</b> ${safe(b.date)}<br>
+   <b>বিস্তারিত:</b> ${safe(b.details || "নেই")}<br>
+   <b>বর্তমান অবস্থা:</b> ${safe(b.status)}
+  </div>
+
+  <hr>
+
+  <h3>মিস্ত্রি যাওয়ার সময় নির্ধারণ</h3>
+
+  <label>তারিখ</label>
+  <input type="date" id="date-${safe(b.id)}"
+   value="${safe(b.visitDate || "")}">
+
+  <label>সময়</label>
+  <input type="time" id="time-${safe(b.id)}"
+   value="${safe(b.visitTime || "")}">
+
+  <label>বুকিং স্ট্যাটাস</label>
+  <select id="status-${safe(b.id)}">
+   ${[
+    "নতুন বুকিং",
+    "নিশ্চিত",
+    "কর্মী রওনা হয়েছেন",
+    "কাজ চলছে",
+    "সম্পন্ন",
+    "বাতিল"
+   ].map(s=>`
+    <option value="${s}" ${b.status===s?"selected":""}>
+     ${s}
+    </option>
+   `).join("")}
+  </select>
+
+  <label>কাস্টমারের জন্য বার্তা</label>
+  <textarea id="note-${safe(b.id)}" rows="2">${safe(b.note || "")}</textarea>
+
+  <button onclick="saveBooking('${safe(b.id)}')" style="width:100%">
+   আপডেট সেভ করুন
+  </button>
+
+  <button class="danger" onclick="deleteBooking('${safe(b.id)}')"
+   style="width:100%">
+   বুকিং মুছে ফেলুন
+  </button>
+
+ </div>
+ `).join("");
 }
 
-function deleteBooking(index){
+window.saveBooking = async id=>{
+ const date = $("date-"+id).value;
+ const time = $("time-"+id).value;
+ const status = $("status-"+id).value;
+ const note = $("note-"+id).value.trim();
 
-if(!confirm("এই বুকিং মুছে ফেলতে চান?"))return;
+ try{
+  const batch = writeBatch(db);
 
-const bookings=getBookings();
-bookings.splice(index,1);
-saveBookings(bookings);
-render();
-}
+  batch.update(doc(db,"bookings",id),{
+   visitDate:date,
+   visitTime:time,
+   status,
+   note
+  });
 
-if(sessionStorage.getItem("akash_admin_login")==="yes"){
-showDashboard();
-}
+  batch.update(doc(db,"tracking",id),{
+   status,
+   visitDate:date,
+   visitTime:time,
+   note
+  });
+
+  await batch.commit();
+
+  alert("বুকিং সফলভাবে আপডেট হয়েছে!");
+  await loadBookings();
+
+ }catch(error){
+  alert("আপডেট হয়নি। Firebase Rules পরীক্ষা করুন।");
+ }
+};
+
+window.deleteBooking = async id=>{
+ if(!confirm("আপনি কি এই বুকিং মুছে ফেলতে চান?")) return;
+
+ try{
+  const batch = writeBatch(db);
+
+  batch.delete(doc(db,"bookings",id));
+  batch.delete(doc(db,"tracking",id));
+
+  await batch.commit();
+
+  alert("বুকিং মুছে ফেলা হয়েছে।");
+  await loadBookings();
+
+ }catch(error){
+  alert("বুকিং মুছতে সমস্যা হয়েছে।");
+ }
+};
+
+$("refreshBtn").addEventListener("click",loadBookings);
+$("search").addEventListener("input",renderBookings);
+$("filter").addEventListener("change",renderBookings);
+
 </script>
 
 </body>
