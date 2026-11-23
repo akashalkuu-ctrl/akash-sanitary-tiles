@@ -1,0 +1,239 @@
+
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>আকাশ স্যানিটারি - Admin Panel</title>
+
+<style>
+*{box-sizing:border-box}
+body{margin:0;font-family:Arial,sans-serif;background:#f1f5f9;color:#172033}
+header{background:#075985;color:white;padding:20px;text-align:center}
+.container{max-width:1100px;margin:auto;padding:15px}
+.card{background:white;padding:18px;border-radius:12px;margin-bottom:16px;box-shadow:0 3px 12px #00000010}
+input,select,textarea,button{width:100%;padding:12px;margin:7px 0;border:1px solid #cbd5e1;border-radius:8px;font-size:15px}
+button{background:#0284c7;color:white;border:0;cursor:pointer;font-weight:bold}
+.danger{background:#dc2626}
+.gray{background:#475569}
+.hidden{display:none}
+.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:10px}
+.stat{background:#e0f2fe;padding:15px;border-radius:10px;text-align:center}
+.stat strong{display:block;font-size:25px;color:#075985}
+.booking{border:1px solid #dbeafe;border-radius:10px;padding:15px;margin:13px 0}
+.booking h3{color:#075985;margin-top:0}
+.row{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.small{font-size:13px;color:#64748b}
+@media(max-width:550px){.row{grid-template-columns:1fr}}
+</style>
+</head>
+
+<body>
+
+<header>
+<h2>আকাশ স্যানিটারি ও টাইলস মিস্ত্রি</h2>
+<p>ADMIN DASHBOARD</p>
+</header>
+
+<div class="container">
+
+<div id="loginBox" class="card">
+<h2>অ্যাডমিন লগইন</h2>
+<input id="password" type="password" placeholder="অ্যাডমিন পাসওয়ার্ড">
+<button onclick="login()">লগইন করুন</button>
+<p id="error" style="color:red"></p>
+<p class="small">ডেমো পাসওয়ার্ড: akash123</p>
+</div>
+
+<div id="dashboard" class="hidden">
+
+<div class="card">
+<div class="row">
+<h2>বুকিং ড্যাশবোর্ড</h2>
+<button class="gray" onclick="logout()">লগআউট</button>
+</div>
+
+<div class="stats">
+<div class="stat">মোট বুকিং<strong id="total">0</strong></div>
+<div class="stat">নতুন<strong id="newCount">0</strong></div>
+<div class="stat">নিশ্চিত<strong id="confirmed">0</strong></div>
+<div class="stat">সম্পন্ন<strong id="completed">0</strong></div>
+</div>
+</div>
+
+<div class="card">
+<h3>বুকিং খুঁজুন</h3>
+<input id="search" placeholder="নাম, ফোন বা গ্রামের নাম দিয়ে খুঁজুন" oninput="render()">
+
+<select id="filter" onchange="render()">
+<option value="">সব বুকিং</option>
+<option>নতুন বুকিং</option>
+<option>নিশ্চিত</option>
+<option>কর্মী রওনা হয়েছেন</option>
+<option>কাজ চলছে</option>
+<option>সম্পন্ন</option>
+<option>বাতিল</option>
+</select>
+</div>
+
+<div class="card">
+<h3>সকল কাস্টমার বুকিং</h3>
+<div id="bookingList">কোনো বুকিং পাওয়া যায়নি।</div>
+</div>
+
+</div>
+</div>
+
+<script>
+const KEY="akash_demo_bookings_v1";
+const PASSWORD="akash123";
+
+function login(){
+if(document.getElementById("password").value===PASSWORD){
+sessionStorage.setItem("akash_admin_login","yes");
+showDashboard();
+}else{
+document.getElementById("error").textContent="পাসওয়ার্ড সঠিক নয়!";
+}
+}
+
+function logout(){
+sessionStorage.removeItem("akash_admin_login");
+location.reload();
+}
+
+function showDashboard(){
+document.getElementById("loginBox").classList.add("hidden");
+document.getElementById("dashboard").classList.remove("hidden");
+render();
+}
+
+function getBookings(){
+try{
+return JSON.parse(localStorage.getItem(KEY)||"[]");
+}catch(e){return [];}
+}
+
+function saveBookings(data){
+localStorage.setItem(KEY,JSON.stringify(data));
+}
+
+function safe(value){
+return String(value??"").replace(/[&<>"']/g,c=>({
+"&":"&amp;",
+"<":"&lt;",
+">":"&gt;",
+'"':"&quot;",
+"'":"&#39;"
+}[c]));
+}
+
+function render(){
+
+const bookings=getBookings();
+
+document.getElementById("total").textContent=bookings.length;
+
+document.getElementById("newCount").textContent=
+bookings.filter(b=>(b.status||"নতুন বুকিং")==="নতুন বুকিং").length;
+
+document.getElementById("confirmed").textContent=
+bookings.filter(b=>b.status==="নিশ্চিত").length;
+
+document.getElementById("completed").textContent=
+bookings.filter(b=>b.status==="সম্পন্ন").length;
+
+const q=document.getElementById("search").value.toLowerCase();
+const f=document.getElementById("filter").value;
+
+const filtered=bookings.map((b,i)=>({...b,_index:i})).filter(b=>{
+const text=[
+b.name,b.phone,b.village,b.address,b.upazila
+].join(" ").toLowerCase();
+
+return text.includes(q)&&(!f||(b.status||"নতুন বুকিং")===f);
+});
+
+const list=document.getElementById("bookingList");
+
+if(!filtered.length){
+list.innerHTML="কোনো বুকিং পাওয়া যায়নি।";
+return;
+}
+
+list.innerHTML=filtered.map(b=>`
+<div class="booking">
+
+<h3>👤 ${safe(b.name||"নাম নেই")}</h3>
+
+<p><b>বুকিং আইডি:</b> ${safe(b.id)}</p>
+<p><b>ফোন:</b> ${safe(b.phone)}</p>
+<p><b>জেলা:</b> ${safe(b.district||"নাটোর")}</p>
+<p><b>উপজেলা:</b> ${safe(b.upazila)}</p>
+<p><b>গ্রামের নাম:</b> ${safe(b.village||"দেওয়া হয়নি")}</p>
+<p><b>সম্পূর্ণ ঠিকানা:</b> ${safe(b.address)}</p>
+<p><b>কাজের ধরন:</b> ${safe(b.service)}</p>
+<p><b>কাজের বিবরণ:</b> ${safe(b.details)}</p>
+<p><b>কাস্টমারের পছন্দের তারিখ:</b> ${safe(b.date)}</p>
+
+<hr>
+
+<label>মিস্ত্রি যাওয়ার তারিখ</label>
+<input type="date" id="visitDate${b._index}" value="${safe(b.visitDate)}">
+
+<label>মিস্ত্রি যাওয়ার সময়</label>
+<input type="time" id="visitTime${b._index}" value="${safe(b.visitTime)}">
+
+<label>বুকিং স্ট্যাটাস</label>
+<select id="status${b._index}">
+${["নতুন বুকিং","নিশ্চিত","কর্মী রওনা হয়েছেন","কাজ চলছে","সম্পন্ন","বাতিল"].map(s=>
+`<option value="${s}" ${(b.status||"নতুন বুকিং")===s?"selected":""}>${s}</option>`
+).join("")}
+</select>
+
+<label>কাস্টমারকে বার্তা</label>
+<textarea id="note${b._index}" rows="3">${safe(b.note||"")}</textarea>
+
+<button onclick="updateBooking(${b._index})">আপডেট সেভ করুন</button>
+
+<button class="danger" onclick="deleteBooking(${b._index})">বুকিং মুছুন</button>
+
+</div>
+`).join("");
+}
+
+function updateBooking(index){
+
+const bookings=getBookings();
+const b=bookings[index];
+
+if(!b)return;
+
+b.visitDate=document.getElementById("visitDate"+index).value;
+b.visitTime=document.getElementById("visitTime"+index).value;
+b.status=document.getElementById("status"+index).value;
+b.note=document.getElementById("note"+index).value;
+
+saveBookings(bookings);
+
+alert("বুকিং আপডেট সেভ হয়েছে!");
+render();
+}
+
+function deleteBooking(index){
+
+if(!confirm("এই বুকিং মুছে ফেলতে চান?"))return;
+
+const bookings=getBookings();
+bookings.splice(index,1);
+saveBookings(bookings);
+render();
+}
+
+if(sessionStorage.getItem("akash_admin_login")==="yes"){
+showDashboard();
+}
+</script>
+
+</body>
+</html>
