@@ -1,0 +1,276 @@
+
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>অনলাইন বুকিং | আকাশ স্যানিটারি</title>
+<style>
+*{box-sizing:border-box}
+body{margin:0;font-family:Arial,sans-serif;background:#f1f5f9;color:#172033}
+header{background:#075985;color:white;text-align:center;padding:22px 12px}
+header h2{margin:5px}
+.container{max-width:650px;margin:22px auto;padding:14px}
+.card{background:white;padding:20px;border-radius:13px;box-shadow:0 3px 14px #0001}
+h3{color:#075985}
+label{display:block;font-weight:bold;margin-top:13px;font-size:14px}
+input,select,textarea{width:100%;padding:13px;margin-top:6px;border:1px solid #cbd5e1;border-radius:8px;font-size:15px}
+button,.btn{display:block;width:100%;padding:14px;margin-top:15px;border:0;border-radius:8px;background:#0284c7;color:white;font-size:16px;font-weight:bold;text-align:center;text-decoration:none;cursor:pointer}
+button:disabled{opacity:.6}
+.green{background:#16a34a}
+.notice{background:#e0f2fe;padding:12px;border-radius:8px;line-height:1.7}
+#message{margin-top:15px;padding:13px;border-radius:8px;line-height:1.8;overflow-wrap:anywhere}
+.success{background:#dcfce7}
+.error{background:#fee2e2}
+footer{text-align:center;padding:20px;color:#64748b}
+</style>
+</head>
+<body>
+
+<header>
+<h2>আকাশ স্যানিটারি ও টাইলস মিস্ত্রি</h2>
+<p>অনলাইন বুকিং ফর্ম</p>
+</header>
+
+<div class="container">
+<div class="card">
+
+<h3>আপনার বুকিং তথ্য দিন</h3>
+<p class="notice">
+সঠিক তথ্য দিয়ে ফর্ম পূরণ করুন। বুকিং জমা হলে একটি বুকিং আইডি পাবেন।
+</p>
+
+<form id="bookingForm">
+
+<label>আপনার নাম *</label>
+<input id="name" maxlength="80" required placeholder="আপনার পূর্ণ নাম">
+
+<label>মোবাইল নম্বর *</label>
+<input id="phone" type="tel" maxlength="15" required placeholder="01XXXXXXXXX">
+
+<label>জেলা</label>
+<input value="নাটোর" readonly>
+
+<label>উপজেলা *</label>
+<select id="upazila" required>
+<option value="">উপজেলা নির্বাচন করুন</option>
+<option>নাটোর সদর</option>
+<option>লালপুর</option>
+<option>বাগাতিপাড়া</option>
+<option>বড়াইগ্রাম</option>
+<option>গুরুদাসপুর</option>
+<option>সিংড়া</option>
+<option>নলডাঙ্গা</option>
+</select>
+
+<label>গ্রামের নাম *</label>
+<input id="village" maxlength="100" required placeholder="আপনার গ্রামের নাম">
+
+<label>সম্পূর্ণ ঠিকানা *</label>
+<textarea id="address" rows="3" maxlength="500" required placeholder="বাড়ি, রাস্তা বা পরিচিত স্থানের নাম"></textarea>
+
+<label>কোন কাজ করাতে চান? *</label>
+<select id="service" required>
+<option value="">কাজ নির্বাচন করুন</option>
+<option>স্যানিটারি কাজ</option>
+<option>পানির পাইপলাইন</option>
+<option>বাথরুম টাইলস</option>
+<option>কিচেন টাইলস</option>
+<option>ফ্লোর টাইলস</option>
+<option>ওয়াল টাইলস</option>
+<option>মেরামতের কাজ</option>
+<option>অন্যান্য</option>
+</select>
+
+<label>কবে কাজ দেখতে আসতে হবে? *</label>
+<input id="date" type="date" required>
+
+<label>কাজের বিস্তারিত</label>
+<textarea id="details" rows="4" maxlength="1500" placeholder="কাজের বিবরণ লিখুন"></textarea>
+
+<button id="submitBtn" type="submit">বুকিং জমা দিন</button>
+</form>
+
+<div id="message"></div>
+
+<hr style="margin:25px 0;border:0;border-top:1px solid #ddd">
+
+<h3>বুকিং ট্র্যাকিং</h3>
+<p>আপনার বুকিং আইডি দিয়ে কাজের অবস্থা দেখুন।</p>
+<input id="trackId" placeholder="যেমন: AKS123456">
+<button type="button" class="green" id="trackBtn">বুকিং খুঁজুন</button>
+<div id="trackResult"></div>
+
+<a href="index.html" class="btn">হোম পেজে ফিরে যান</a>
+
+</div>
+</div>
+
+<footer>
+আকাশ স্যানিটারি ও টাইলস মিস্ত্রি<br>
+ফোন: 01780685596
+</footer>
+
+<script type="module">
+import { initializeApp }
+from "https://www.gstatic.com/firebasejs/11.10.0/firebase-app.js";
+
+import {
+ getFirestore, doc, writeBatch, getDoc
+} from "https://www.gstatic.com/firebasejs/11.10.0/firebase-firestore.js";
+
+const firebaseConfig = {
+ apiKey: "AIzaSyBvDv-zJbn5tgFrTt0Y2XHhagRqpL1YPOo",
+ authDomain: "akash-sanitary-18f8e.firebaseapp.com",
+ projectId: "akash-sanitary-18f8e",
+ storageBucket: "akash-sanitary-18f8e.firebasestorage.app",
+ messagingSenderId: "356604373846",
+ appId: "1:356604373846:web:d12ac29c648258668b44f7"
+};
+
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
+
+const $ = id => document.getElementById(id);
+
+function safe(value){
+ return String(value || "").replace(/[&<>"']/g,c=>({
+  "&":"&amp;","<":"&lt;",">":"&gt;",
+  '"':"&quot;","'":"&#39;"
+ }[c]));
+}
+
+function localDate(){
+ const d = new Date();
+ const y = d.getFullYear();
+ const m = String(d.getMonth()+1).padStart(2,"0");
+ const day = String(d.getDate()).padStart(2,"0");
+ return `${y}-${m}-${day}`;
+}
+
+$("date").min = localDate();
+
+function makeId(){
+ return "AKS" +
+ Date.now().toString(36).toUpperCase() +
+ Math.random().toString(36).slice(2,7).toUpperCase();
+}
+
+$("bookingForm").addEventListener("submit",async e=>{
+ e.preventDefault();
+
+ const btn = $("submitBtn");
+ const message = $("message");
+
+ if(!$("bookingForm").reportValidity()) return;
+
+ btn.disabled = true;
+ btn.textContent = "বুকিং জমা হচ্ছে...";
+ message.className = "";
+ message.textContent = "";
+
+ try{
+  const id = makeId();
+
+  const booking = {
+   id,
+   name:$("name").value.trim(),
+   phone:$("phone").value.trim(),
+   district:"নাটোর",
+   upazila:$("upazila").value,
+   village:$("village").value.trim(),
+   address:$("address").value.trim(),
+   service:$("service").value,
+   date:$("date").value,
+   details:$("details").value.trim(),
+   status:"নতুন বুকিং",
+   visitDate:"",
+   visitTime:"",
+   note:"",
+   createdAt:new Date().toISOString()
+  };
+
+  if(!/^01[3-9]\d{8}$/.test(booking.phone)){
+   throw new Error("সঠিক ১১ সংখ্যার বাংলাদেশি মোবাইল নম্বর লিখুন।");
+  }
+
+  if(booking.date < localDate()){
+   throw new Error("আগের তারিখ নির্বাচন করা যাবে না।");
+  }
+
+  const batch = writeBatch(db);
+
+  batch.set(doc(db,"bookings",id),booking);
+
+  batch.set(doc(db,"tracking",id),{
+   id,
+   status:"নতুন বুকিং",
+   visitDate:"",
+   visitTime:"",
+   note:""
+  });
+
+  await batch.commit();
+
+  message.className = "success";
+  message.innerHTML = `
+   <h3>✅ বুকিং সফল হয়েছে!</h3>
+   <p>আপনার বুকিং আইডি:</p>
+   <h2>${safe(id)}</h2>
+   <p>আইডিটি সংরক্ষণ করুন। পরে বুকিং ট্র্যাক করতে লাগবে।</p>
+  `;
+
+  $("bookingForm").reset();
+  $("date").min = localDate();
+
+ }catch(error){
+  message.className = "error";
+  message.textContent =
+   "বুকিং জমা হয়নি: " + (error.message || "আবার চেষ্টা করুন।");
+ }finally{
+  btn.disabled = false;
+  btn.textContent = "বুকিং জমা দিন";
+ }
+});
+
+$("trackBtn").addEventListener("click",async()=>{
+ const id = $("trackId").value.trim().toUpperCase();
+ const result = $("trackResult");
+
+ result.className = "";
+
+ if(!id){
+  result.textContent = "আগে বুকিং আইডি লিখুন।";
+  return;
+ }
+
+ result.textContent = "খোঁজা হচ্ছে...";
+
+ try{
+  const snap = await getDoc(doc(db,"tracking",id));
+
+  if(!snap.exists()){
+   result.textContent = "বুকিং পাওয়া যায়নি। আইডি পরীক্ষা করুন।";
+   return;
+  }
+
+  const b = snap.data();
+
+  result.className = "notice";
+  result.innerHTML = `
+   <h3>বুকিংয়ের অবস্থা</h3>
+   <p><b>আইডি:</b> ${safe(b.id)}</p>
+   <p><b>স্ট্যাটাস:</b> ${safe(b.status)}</p>
+   <p><b>মিস্ত্রি যাওয়ার তারিখ:</b> ${safe(b.visitDate || "এখনো নির্ধারণ হয়নি")}</p>
+   <p><b>মিস্ত্রি যাওয়ার সময়:</b> ${safe(b.visitTime || "এখনো নির্ধারণ হয়নি")}</p>
+   <p><b>বার্তা:</b> ${safe(b.note || "কোনো বার্তা নেই")}</p>
+  `;
+
+ }catch(error){
+  result.textContent = "তথ্য পাওয়া যায়নি। ইন্টারনেট সংযোগ পরীক্ষা করুন।";
+ }
+});
+</script>
+
+</body>
+</html>
